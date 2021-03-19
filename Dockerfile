@@ -23,9 +23,12 @@ RUN  apt-get update -qq  \
    libswscale5 libswresample3 libavutil56 libusb-dev \
    libpcre2-16-0 libdouble-conversion3 libxcb-xinput0 \
    libxcb-xinerama0
+RUN wget -P /spinnaker  https://console.box.lenovo.com/v2/delivery/dl_router/a1995795ffba47dbbe45771477319cc3/archive/2.2.0.48/spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.tar.gz
+RUN wget -P /spinnaker  https://console.box.lenovo.com/v2/delivery/dl_router/a1995795ffba47dbbe45771477319cc3/archive/2.2.0.48/spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz
 
-COPY ./docker/spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz  /spinnaker/spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz
-COPY ./docker/spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.tar.gz /spinnaker/spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.tar.gz
+
+#COPY ./docker/spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz  /spinnaker/spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz
+#COPY ./docker/spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.tar.gz /spinnaker/spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.tar.gz
 
 WORKDIR /spinnaker
 RUN sudo tar -xzf spinnaker-2.2.0.48-Ubuntu20.04-amd64-pkg.tar.gz
