@@ -5,9 +5,21 @@ import argparse
 import time
 from time import sleep
 from typing import Dict, Tuple
+ 
+####################
+import numpy as np
+
+import cv2 as cv
+
+import glob
+
+####################
 
 import PySpin
 import zmq
+
+####################
+import yaml
 
 
 class ImagePublisher(object):
@@ -121,7 +133,6 @@ class CameraBFS(object):
                     )
                     chunk_data = image_result.GetChunkData()
                     rgb_image = rgb_image.GetData()
-
                     height = chunk_data.GetHeight()
                     width = chunk_data.GetWidth()
                     # Timestamp does not work properly on Linux systems. Known spinnaker bug (30.11.2020)
@@ -129,8 +140,22 @@ class CameraBFS(object):
                     frame_id = chunk_data.GetFrameID()
 
                     rgb_image = rgb_image.reshape([height, width, 3])
+                    
+                    ##################################  CALIBRATITION  #########################################
+                    with open('calibration.yaml') as fh:
+                        read_data = yaml.load(fh, Loader = yaml.FullLoader)
+                        matx = read_data['camera_matrix']
+                        dist_coeff = read_data['dist_coeff']
 
-                    self.image_publisher.send_data(rgb_image, timestamp, frame_id)
+                        matx = np.array(matx)
+                        dist_coeff = np.array(dist_coeff)
+                                 
+                    newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
+                    dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
+                    x, y, w, h = roi
+                    dst = dst[y:y+h, x:x+w]
+
+                    self.image_publisher.send_data(dst.astype('uint8'), timestamp, frame_id)
 
                 image_result.Release()
 

@@ -49,8 +49,13 @@ RUN pip3 install spinnaker_python-2.2.0.48-cp38-cp38-linux_x86_64.whl
 
 ## publisher
 RUN pip3 install pyzmq~=19.0.2
+RUN pip3 install opencv-python==4.5.4.58 
+RUN pip3 install pyaml
+
 WORKDIR /
+COPY ./publisher/calibration.yaml /calibration.yaml
 COPY ./publisher/camerapublisher.py /camerapublisher.py
+
 
 EXPOSE 5557
 EXPOSE 5556
