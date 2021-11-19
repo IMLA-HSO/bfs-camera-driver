@@ -214,7 +214,7 @@ def get_arguments() -> Tuple[int, str, str]:
         "-f",
         "--fps",
         help="Address for subscribe image metadata.",
-        default=30,
+        default=60,
         type=int,
     )
 
