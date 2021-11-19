@@ -1,6 +1,7 @@
 """ CameraPublisher: Publish images from BFS-Camera.
 """
 
+import os
 import argparse
 import time
 from time import sleep
@@ -141,21 +142,26 @@ class CameraBFS(object):
 
                     rgb_image = rgb_image.reshape([height, width, 3])
                     
-                    ##################################  CALIBRATITION  #########################################
-                    with open('calibration.yaml') as fh:
-                        read_data = yaml.load(fh, Loader = yaml.FullLoader)
-                        matx = read_data['camera_matrix']
-                        dist_coeff = read_data['dist_coeff']
+                    calibration_fname = 'calibration.yaml'
+                    if not os.path.isfile(calibration_fname):
+                        self.image_publisher.send_data(rgb_image, timestamp, frame_id)
 
-                        matx = np.array(matx)
-                        dist_coeff = np.array(dist_coeff)
+                    else: 
+                        ##################################  CALIBRATITION  #########################################
+                        with open(calibration_fname) as fh:
+                            read_data = yaml.load(fh, Loader = yaml.FullLoader)
+                            matx = read_data['camera_matrix']
+                            dist_coeff = read_data['dist_coeff']
+
+                            matx = np.array(matx)
+                            dist_coeff = np.array(dist_coeff)
                                  
-                    newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
-                    dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
-                    x, y, w, h = roi
-                    dst = dst[y:y+h, x:x+w]
+                        newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
+                        dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
+                        x, y, w, h = roi
+                        dst = dst[y:y+h, x:x+w]
 
-                    self.image_publisher.send_data(dst.astype('uint8'), timestamp, frame_id)
+                        self.image_publisher.send_data(dst.astype('uint8'), timestamp, frame_id)
 
                 image_result.Release()
 
