@@ -53,7 +53,7 @@ RUN pip3 install opencv-python==4.5.4.58
 RUN pip3 install pyaml
 
 WORKDIR /
-COPY ./publisher/calibration.yaml /calibration.yaml
+COPY ./publisher/*.yaml /
 COPY ./publisher/camerapublisher.py /camerapublisher.py
 
 
