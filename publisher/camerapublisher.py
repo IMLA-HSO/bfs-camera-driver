@@ -1,6 +1,5 @@
 """ CameraPublisher: Publish images from BFS-Camera.
 """
-
 import os
 import argparse
 import time
@@ -144,24 +143,27 @@ class CameraBFS(object):
                     
                     calibration_fname = 'calibration.yaml'
                     if not os.path.isfile(calibration_fname):
+                        print('no cali')
                         self.image_publisher.send_data(rgb_image, timestamp, frame_id)
 
                     else: 
                         ##################################  CALIBRATITION  #########################################
-                        with open(calibration_fname) as fh:
+                        with open('./calibration.yaml') as fh:
                             read_data = yaml.load(fh, Loader = yaml.FullLoader)
                             matx = read_data['camera_matrix']
                             dist_coeff = read_data['dist_coeff']
-
                             matx = np.array(matx)
                             dist_coeff = np.array(dist_coeff)
+                            y_start = read_data['y_start']
+                            x_start = read_data['x_start']
+                            w = read_data['w']
+                            h = read_data['h']                            
                                  
                         newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
                         dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
-                        x, y, w, h = roi
-                        dst = dst[y:y+h, x:x+w]
+                        x, y, _, _ = roi
 
-                        self.image_publisher.send_data(dst.astype('uint8'), timestamp, frame_id)
+                        self.image_publisher.send_data(dst[y_start:y+h, x_start:x+w].astype('uint8'), timestamp, frame_id)
 
                 image_result.Release()
 
