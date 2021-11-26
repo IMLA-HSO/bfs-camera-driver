@@ -1,26 +1,17 @@
 """ CameraPublisher: Publish images from BFS-Camera.
 """
-import os
 import argparse
-import time
-from time import sleep
-from typing import Dict, Tuple
- 
-####################
-import numpy as np
-
-import cv2 as cv
-
 import glob
-
-####################
-
+import os
+import time
 import PySpin
+import yaml
 import zmq
 
-####################
-import yaml
+import numpy as np
 
+from time import sleep
+from typing import Dict, Tuple
 
 class ImagePublisher(object):
     def __init__(self, addr_image="tcp://0.0.0.0:5557", addr_json="tcp://0.0.0.0:5556"):
@@ -143,9 +134,7 @@ class CameraBFS(object):
                     
                     calibration_fname = 'calibration.yaml'
                     if not os.path.isfile(calibration_fname):
-                        print('no cali')
                         self.image_publisher.send_data(rgb_image, timestamp, frame_id)
-
                     else: 
                         ##################################  CALIBRATITION  #########################################
                         with open('./calibration.yaml') as fh:
@@ -154,16 +143,15 @@ class CameraBFS(object):
                             dist_coeff = read_data['dist_coeff']
                             matx = np.array(matx)
                             dist_coeff = np.array(dist_coeff)
-                            y_start = read_data['y_start']
-                            x_start = read_data['x_start']
-                            w = read_data['w']
-                            h = read_data['h']                            
+                            ymin = read_data['ymin']
+                            xmin = read_data['xmin']
+                            ymax = read_data['ymax']
+                            xmax = read_data['xmax']                            
                                  
                         newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
                         dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
-                        x, y, _, _ = roi
-
-                        self.image_publisher.send_data(dst[y_start:y+h, x_start:x+w].astype('uint8'), timestamp, frame_id)
+                        cropped_dst = dst[ymin:ymax, xmin:xmax].astype('uint8')
+                        self.image_publisher.send_data(cropped_dst, timestamp, frame_id)
 
                 image_result.Release()
 
