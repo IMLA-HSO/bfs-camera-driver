@@ -1,7 +1,7 @@
 Steps for running the FlowNet 2.0 : 
 
 1. To run the FlowNet we have to store the Images in text files (.txt) to get the output (.flo) files. For this **run the text_file_conversion.ipynb** notebook
-2. To run the FLowNet model we need data in the output file as '.flo' extension. To execute this :
+2. To run the FLowNet model we need data in the output file with '.flo' extension. To execute this :
    
    $python Change-Output-File.py
    
