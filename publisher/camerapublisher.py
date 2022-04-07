@@ -1,17 +1,30 @@
 """ CameraPublisher: Publish images from BFS-Camera.
 """
-import argparse
-import glob
 import os
+import argparse
 import time
-import PySpin
-import yaml
-import zmq
-
-import numpy as np
-
 from time import sleep
 from typing import Dict, Tuple
+ 
+####################
+import numpy as np
+
+import cv2 as cv
+
+import glob
+
+####################
+
+import PySpin
+import zmq
+
+####################
+import yaml
+
+
+
+
+
 
 class ImagePublisher(object):
     def __init__(self, addr_image="tcp://0.0.0.0:5557", addr_json="tcp://0.0.0.0:5556"):
@@ -132,12 +145,12 @@ class CameraBFS(object):
 
                     rgb_image = rgb_image.reshape([height, width, 3])
                     
-                    calibration_fname = 'calibration.yaml'
+                    calibration_fname = './calibration.yaml'
                     if not os.path.isfile(calibration_fname):
-                        self.image_publisher.send_data(rgb_image, timestamp, frame_id)
+                        self.image_publisher.send_data(rgb_image, timestamp, frame_id) 
                     else: 
                         ##################################  CALIBRATITION  #########################################
-                        with open('./calibration.yaml') as fh:
+                        with open(calibration_fname) as fh:
                             read_data = yaml.load(fh, Loader = yaml.FullLoader)
                             matx = read_data['camera_matrix']
                             dist_coeff = read_data['dist_coeff']
