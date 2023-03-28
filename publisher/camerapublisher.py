@@ -1,13 +1,29 @@
 """ CameraPublisher: Publish images from BFS-Camera.
 """
-
+import os
 import argparse
 import time
 from time import sleep
 from typing import Dict, Tuple
+ 
+####################
+import numpy as np
+
+import cv2 as cv
+
+import glob
+
+####################
 
 import PySpin
 import zmq
+
+####################
+import yaml
+
+
+
+
 
 
 class ImagePublisher(object):
@@ -121,7 +137,6 @@ class CameraBFS(object):
                     )
                     chunk_data = image_result.GetChunkData()
                     rgb_image = rgb_image.GetData()
-
                     height = chunk_data.GetHeight()
                     width = chunk_data.GetWidth()
                     # Timestamp does not work properly on Linux systems. Known spinnaker bug (30.11.2020)
@@ -129,8 +144,27 @@ class CameraBFS(object):
                     frame_id = chunk_data.GetFrameID()
 
                     rgb_image = rgb_image.reshape([height, width, 3])
-
-                    self.image_publisher.send_data(rgb_image, timestamp, frame_id)
+                    
+                    calibration_fname = './calibration.yaml'
+                    if not os.path.isfile(calibration_fname):
+                        self.image_publisher.send_data(rgb_image, timestamp, frame_id) 
+                    else: 
+                        ##################################  CALIBRATITION  #########################################
+                        with open(calibration_fname) as fh:
+                            read_data = yaml.load(fh, Loader = yaml.FullLoader)
+                            matx = read_data['camera_matrix']
+                            dist_coeff = read_data['dist_coeff']
+                            matx = np.array(matx)
+                            dist_coeff = np.array(dist_coeff)
+                            ymin = read_data['ymin']
+                            xmin = read_data['xmin']
+                            ymax = read_data['ymax']
+                            xmax = read_data['xmax']                            
+                                 
+                        newcameramtx, roi = cv.getOptimalNewCameraMatrix(matx, dist_coeff, (width,height), 1, (width,height))
+                        dst = cv.undistort(rgb_image, matx, dist_coeff, None, newcameramtx)
+                        cropped_dst = dst[ymin:ymax, xmin:xmax].astype('uint8')
+                        self.image_publisher.send_data(cropped_dst, timestamp, frame_id)
 
                 image_result.Release()
 
@@ -183,7 +217,7 @@ def get_arguments() -> Tuple[int, str, str]:
         "-f",
         "--fps",
         help="Address for subscribe image metadata.",
-        default=30,
+        default=60,
         type=int,
     )
 
